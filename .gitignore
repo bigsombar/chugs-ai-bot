@@ -12,6 +12,9 @@ node_modules/
 # TypeScript cache
 *.tsbuildinfo
 
+# Secrets cache
+dev/.dev-secrets.json
+
 # Optional npm cache directory
 .npm
 
