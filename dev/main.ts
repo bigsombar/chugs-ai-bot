@@ -16,6 +16,7 @@ export class Main {
     return process.env.DEV === "true";
   }
 
+  // Retrieves the development guild ID from secrets
   private static async getDevGuildId(): Promise<string | null> {
     if (!process.env.TEST_GUILD_ID) {
       console.log(">> No guild was specified");
@@ -26,6 +27,7 @@ export class Main {
     return guildId;
   }
 
+  // Retrieves the Discord bot token from secrets
   private static async getDiscordToken(): Promise<string> {
     if (!process.env.DISCORD_TOKEN) {
       throw new Error("Could not find BOT_TOKEN ID in your environment");
@@ -37,6 +39,7 @@ export class Main {
     return token;
   }
 
+  // Sets up event handlers for the Discord client
   private static setupClientEvents(): void {
     this._client.once("ready", async () => {
       await this._client.initApplicationCommands();
@@ -47,6 +50,7 @@ export class Main {
     });
   }
 
+  // Initializes and starts the Discord bot
   static async start(): Promise<void> {
     const devGuildId = await this.getDevGuildId();
     this._client = new Client({

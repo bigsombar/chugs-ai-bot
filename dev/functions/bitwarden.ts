@@ -13,7 +13,7 @@ export class BWSecretManager {
         return process.env.DEV === "true";
     }
 
-    // Загружаем кэш из файла (только для DEV)
+    // Load cahce from file (DEV)
     private async loadDevSecretsCache(): Promise<void> {
         if (!BWSecretManager.isDev) return;
         try {
@@ -26,7 +26,7 @@ export class BWSecretManager {
         }
     }
 
-    // Сохраняем кэш в файл (только для DEV)
+    // Load cahce to file (DEV)
     private async saveDevSecretsCache(): Promise<void> {
         if (!BWSecretManager.isDev) return;
         await fs.writeFile(
@@ -36,7 +36,7 @@ export class BWSecretManager {
         );
     }
 
-    // Получить секрет (сначала из кэша, если DEV)
+    // Retrieve secret (from cache, only if DEV)
     public async getSecret(secretId: string): Promise<string | null> {
         if (BWSecretManager.isDev) {
             if (Object.keys(this.devSecretsCache).length === 0) {
@@ -47,7 +47,7 @@ export class BWSecretManager {
             }
         }
 
-        // Если нет в кэше — запросить у Bitwarden
+        // If not exist — ask from Bitwarden
         const secret = this.getBWSecretFromBitwarden(secretId);
         if (secret && BWSecretManager.isDev) {
             this.devSecretsCache[secretId] = secret;
@@ -56,7 +56,7 @@ export class BWSecretManager {
         return secret;
     }
 
-    // Получить секрет напрямую из Bitwarden CLI
+    // Retrieve secret from Bitwarden CLI
     private getBWSecretFromBitwarden(secretId: string): string | null {
         try {
             const command =

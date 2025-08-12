@@ -12,6 +12,7 @@ export class Main {
     static get isDev() {
         return process.env.DEV === "true";
     }
+    // Retrieves the development guild ID from secrets
     static async getDevGuildId() {
         if (!process.env.TEST_GUILD_ID) {
             console.log(">> No guild was specified");
@@ -21,6 +22,7 @@ export class Main {
         console.log(">> Using guild", guildId);
         return guildId;
     }
+    // Retrieves the Discord bot token from secrets
     static async getDiscordToken() {
         if (!process.env.DISCORD_TOKEN) {
             throw new Error("Could not find BOT_TOKEN ID in your environment");
@@ -31,6 +33,7 @@ export class Main {
         }
         return token;
     }
+    // Sets up event handlers for the Discord client
     static setupClientEvents() {
         this._client.once("ready", async () => {
             await this._client.initApplicationCommands();
@@ -40,6 +43,7 @@ export class Main {
             this._client.executeInteraction(interaction);
         });
     }
+    // Initializes and starts the Discord bot
     static async start() {
         const devGuildId = await this.getDevGuildId();
         this._client = new Client({

@@ -1,29 +1,3 @@
-// import { execSync } from 'child_process';
-// import 'dotenv/config';
-// import fs from 'fs/promises';
-// // Secrets cache for dev build
-// const devSecretsCache: Record<string, string> = {};
-// const DEV_SECRETS_FILE = '../.dev-secrets.json';
-// // Aquire Secrets from Bitwarden Secret Manager's CLI
-// export function getBWSecret(secretId: string): string | null {
-//     try {
-//         const command = process.platform === 'win32'
-//             ? `bws secret get ${escapePowerShellArg(secretId)} | ConvertFrom-Json | Select-Object -ExpandProperty value`
-//             : `bws secret get ${secretId} | jq -r '.value'`;
-//         const output = execSync(command, {
-//             shell: process.platform === 'win32' ? 'powershell.exe' : '/bin/bash',
-//             encoding: 'utf-8'
-//         }).trim();
-//         return output || null;
-//     } catch (error) {
-//         console.error('Error retrieving secret:', error);
-//         return null;
-//     }
-// }
-// // Shielding PowerShell Args
-// function escapePowerShellArg(arg: string): string {
-//     return `'${arg.replace(/'/g, "''")}'`;
-// }
 import { execSync } from "child_process";
 import "dotenv/config";
 import fs from "fs/promises";
@@ -34,7 +8,7 @@ export class BWSecretManager {
     static get isDev() {
         return process.env.DEV === "true";
     }
-    // Загружаем кэш из файла (только для DEV)
+    // Load cahce from file (DEV)
     async loadDevSecretsCache() {
         if (!BWSecretManager.isDev)
             return;
@@ -48,13 +22,13 @@ export class BWSecretManager {
             console.log(">> No secrets cache found. Will create new");
         }
     }
-    // Сохраняем кэш в файл (только для DEV)
+    // Load cahce to file (DEV)
     async saveDevSecretsCache() {
         if (!BWSecretManager.isDev)
             return;
         await fs.writeFile(DEV_SECRETS_FILE, JSON.stringify(this.devSecretsCache, null, 2), "utf-8");
     }
-    // Получить секрет (сначала из кэша, если DEV)
+    // Retrieve secret (from cache, only if DEV)
     async getSecret(secretId) {
         if (BWSecretManager.isDev) {
             if (Object.keys(this.devSecretsCache).length === 0) {
@@ -64,7 +38,7 @@ export class BWSecretManager {
                 return this.devSecretsCache[secretId];
             }
         }
-        // Если нет в кэше — запросить у Bitwarden
+        // If not exist — ask from Bitwarden
         const secret = this.getBWSecretFromBitwarden(secretId);
         if (secret && BWSecretManager.isDev) {
             this.devSecretsCache[secretId] = secret;
@@ -72,7 +46,7 @@ export class BWSecretManager {
         }
         return secret;
     }
-    // Получить секрет напрямую из Bitwarden CLI
+    // Retrieve secret from Bitwarden CLI
     getBWSecretFromBitwarden(secretId) {
         try {
             const command = process.platform === "win32"
