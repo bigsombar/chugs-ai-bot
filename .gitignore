@@ -24,3 +24,6 @@ DiscordBot.code-workspace
 
 #variety stuff
 images/
+
+# Qoder IDE files
+.qoder/
