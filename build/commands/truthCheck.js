@@ -13,15 +13,16 @@ import { Discord, Slash, SlashOption } from "discordx";
 import { BWSecretManager } from "../functions/bitwarden.js";
 import { Zalgo } from "../functions/zalgo.js";
 import { WebSearchService, TruthAssessment } from "../functions/webSearch.js";
+import { QueryProcessingService } from "../functions/queryProcessing.js";
 let TruthCheckCommand = class TruthCheckCommand {
     static { TruthCheckCommand_1 = this; }
     static secretManager = new BWSecretManager();
     async truthCheck(claim, interaction) {
         // Defer the interaction as this will take some time
         await interaction.deferReply();
-        // Validate claim length
-        if (claim.length > 500) {
-            await interaction.editReply("Слишком длинное утверждение. Максимум 500 символов.");
+        // Validate claim length (increased to 1500 characters)
+        if (claim.length > 1500) {
+            await interaction.editReply("Слишком длинное утверждение. Максимум 1500 символов.");
             return;
         }
         // Get AI API key
@@ -37,28 +38,37 @@ let TruthCheckCommand = class TruthCheckCommand {
         // No API keys needed for web scraping approach
         console.log("Using direct web scraping for search functionality");
         try {
-            // Step 1: Perform web search
-            const searchResults = await WebSearchService.searchClaim(claim);
+            // Step 1: Generate optimized search queries using AI
+            console.log("Generating optimized search queries...");
+            const searchQueries = await QueryProcessingService.generateSearchQueries(claim, aiApiKey);
+            if (searchQueries.length === 0) {
+                await interaction.editReply("Не удалось создать поисковые запросы. Попробуй позже.");
+                return;
+            }
+            console.log(`Generated ${searchQueries.length} search queries:`, searchQueries.map(q => q.query));
+            // Step 2: Perform multiple searches with generated queries
+            const searchResults = await WebSearchService.searchMultipleQueries(searchQueries);
             if (searchResults.length === 0) {
                 await this.sendNoEvidenceResponse(claim, aiApiKey, interaction);
                 return;
             }
-            // Step 2: Process search results and extract evidence
+            console.log(`Found ${searchResults.length} total search results`);
+            // Step 3: Process search results and extract evidence
             const evidenceItems = await WebSearchService.processSearchResults(searchResults);
-            // Step 3: Create evidence summary for AI
+            // Step 4: Create evidence summary for AI
             const evidenceSummary = WebSearchService.createEvidenceSummary(evidenceItems);
-            // Step 4: Assess overall truth
+            // Step 5: Assess overall truth
             const truthAssessment = WebSearchService.assessTruth(evidenceItems);
-            // Step 5: Send to Chugs AI for final response
+            // Step 6: Send to Chugs AI for final response
             await this.sendToChugAI(claim, evidenceSummary, truthAssessment, aiApiKey, interaction);
         }
         catch (error) {
             console.error("Truth check error:", error);
-            if (error.message.includes("No search providers")) {
-                await interaction.editReply("Поисковые модули черного заслона недоступны. Попробуй позже.");
+            if (error.message.includes("Query generation") || error.message.includes("AI models failed")) {
+                await interaction.editReply("Черный заслон не может обработать запрос. Попробуй позже.");
             }
-            else if (error.message.includes("All search providers failed")) {
-                await interaction.editReply("Все поисковые модули черного заслона не отвечают. Попробуй позже.");
+            else if (error.message.includes("DuckDuckGo")) {
+                await interaction.editReply("Поисковые модули черного заслона недоступны. Попробуй позже.");
             }
             else if (error.message.includes("timed out")) {
                 await interaction.editReply("Черный заслон не отвечает. Сеть перегружена.");
@@ -74,7 +84,7 @@ let TruthCheckCommand = class TruthCheckCommand {
         const userPrompt = `
         Человек утверждает: "${claim}"
         
-        Я не смог найти никакой информации в интернете об этом утверждении.
+        Я не смог найти никакой информации в интернете об этом утверждении через поисковые запросы.
         Возможно, это слишком новая информация, локальная информация, или полная выдумка.
         
         Ответь как Чугс, что ты думаешь об этом утверждении, когда нет доказательств в интернете.
@@ -101,13 +111,13 @@ let TruthCheckCommand = class TruthCheckCommand {
         const userPrompt = `
         Человек утверждает: "${claim}"
         
-        Результат анализа: ${assessmentText}
+        Результат анализа множественных поисковых запросов: ${assessmentText}
         
         ${evidenceSummary}
         
         Проанализируй эту информацию как Чугс и объясни человеку, правда это или ложь, 
-        основываясь на найденных доказательствах. Будь в характере Чугса - агрессивен, 
-        но объективен в оценке фактов.
+        основываясь на найденных доказательствах из разных источников. Будь в характере Чугса - агрессивен, 
+        но объективен в оценке фактов. Учти, что поиск проводился по нескольким оптимизированным запросам.
         `;
         await this.callChugsAI(systemPrompt, userPrompt, apiKey, interaction);
     }
@@ -140,10 +150,13 @@ let TruthCheckCommand = class TruthCheckCommand {
     async callChugsAI(systemPrompt, userPrompt, apiKey, interaction) {
         // Array of fallback models (following existing pattern from describe.ts)
         const models = [
-            "deepseek/deepseek-r1-0528:free",
             "tngtech/deepseek-r1t2-chimera:free",
+            "microsoft/mai-ds-r1:free",
             "google/gemini-2.0-flash-exp:free",
-            "mistralai/mistral-small-3.2-24b-instruct:free"
+            "mistralai/mistral-small-3.2-24b-instruct:free",
+            "deepseek/deepseek-r1-0528:free",
+            "deepseek/deepseek-chat-v3-0324:free",
+            "deepseek/deepseek-r1:free"
         ];
         let lastError = null;
         // Try each model until one works
