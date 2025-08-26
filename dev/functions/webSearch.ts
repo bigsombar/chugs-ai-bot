@@ -304,16 +304,16 @@ export class WebSearchService {
     // Assesses the reliability of a source based on domain
     private static assessSourceReliability(domain: string): 'high' | 'medium' | 'low' {
         const highReliability = [
-            'bbc.com', 'reuters.com', 'ap.org', 'npr.org', 'pbs.org',
-            'gov.uk', 'gov.au', 'canada.ca', 'europa.eu',
+            'wikipedia.org', 'bbc.com', 'reuters.com', 'tass.ru', 'npr.org', 'pbs.org',
+            'gov.uk', 'kremlin.ru', 'canada.ca', 'rbc.ru', 'ixbt.games', 'habr.com',
             'nature.com', 'science.org', 'nejm.org', 'thelancet.com',
-            'who.int', 'cdc.gov', 'nih.gov'
+            'who.int', 'cdc.gov', 'nih.gov', 'ixbt.com', '3dnews.ru', 'nplus1.ru'
         ];
 
         const mediumReliability = [
-            'wikipedia.org', 'britannica.com', 'snopes.com', 'factcheck.org',
-            'politifact.com', 'nytimes.com', 'washingtonpost.com', 'theguardian.com',
-            'wsj.com', 'ft.com', 'economist.com'
+            'lenta.ru', 'britannica.com', 'snopes.com', 'kp.ru', 'ru.tradingview.com', 'playground.ru', 'wtftime.ru',
+            'ria.ru', 'vesti.ru', 'regnum.ru', 'theguardian.com', 'gazeta.ru', 'dtf.ru', 'cyber.sports.ru', 'www.appercase.ru',
+            'wsj.com', 'ft.com', 'economist.com', 'russian.rt.com', 't.me/ASupersharij', 'dzen.ru', 'gameguru.ru'
         ];
 
         const lowerDomain = domain.toLowerCase();
