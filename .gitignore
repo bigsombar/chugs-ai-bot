@@ -27,6 +27,3 @@ images/
 
 # Qoder IDE files
 .qoder/
-
-# ToDolist
-TODO.json

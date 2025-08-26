@@ -23,8 +23,8 @@ export class QueryProcessingService {
             throw new Error("User text cannot be empty");
         }
 
-        if (userText.length > 1000) {
-            throw new Error("User text exceeds maximum length of 1000 characters");
+        if (userText.length > 1500) {
+            throw new Error("User text exceeds maximum length of 1500 characters");
         }
 
         try {
@@ -57,16 +57,24 @@ export class QueryProcessingService {
      * Creates the system prompt for AI query extraction
      */
     private static createQueryExtractionPrompt(): string {
+        const currentDate = new Date().toLocaleDateString('ru-RU', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
         return `Ты специалист по извлечению ключевых фактов для проверки правдивости утверждений. 
+
+Сегодняшняя дата: ${currentDate}
 
 Твоя задача: проанализировать утверждение пользователя и создать ровно 3 поисковых запроса на русском языке, которые помогут найти информацию для проверки фактов.
 
 Требования к запросам:
-- Каждый запрос должен быть 2-8 слов
+- Каждый запрос должен быть 2-9 слов
 - Фокусируйся на проверяемых фактах, а не на мнениях
 - Приоритизируй недавние события и конкретные утверждения
 - Используй ключевые слова и имена из оригинального текста
-- Избегай слишком общих формулировок
+- Если в тексте есть год или цифра используй их в запросе
 
 Типы запросов:
 - factual: проверка конкретных фактов, цифр, дат
