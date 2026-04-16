@@ -2,6 +2,7 @@ import { dirname, importx } from "@discordx/importer";
 import { IntentsBitField } from "discord.js";
 import { Client } from "discordx";
 import { BWSecretManager } from "./functions/bitwarden.js";
+
 // Main bot class that manages the Discord client lifecycle
 export class Main {
     static _client;
@@ -51,6 +52,7 @@ export class Main {
                 IntentsBitField.Flags.Guilds,
                 IntentsBitField.Flags.GuildMessages,
                 IntentsBitField.Flags.GuildMembers,
+                IntentsBitField.Flags.MessageContent, // Необходимо для чтения содержимого сообщений
             ],
             botGuilds: this.isDev && devGuildId ? [devGuildId] : undefined,
             silent: false,
